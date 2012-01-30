@@ -1121,7 +1121,7 @@ void Creature::SaveToDB(uint32 mapid, uint8 spawnMask)
         << data.curhealth << ","                            //curhealth
         << data.curmana << ","                              //curmana
         << (data.is_dead  ? 1 : 0) << ","                   //is_dead
-        << data.movementType << ")";                        //default movement generator type
+        << uint32(data.movementType) << ")";                //default movement generator type, cast to prevent save as symbol
 
     WorldDatabase.PExecuteLog("%s", ss.str().c_str());
 
@@ -1757,7 +1757,8 @@ void Creature::SendAIReaction(AiReaction reactionType)
 
 void Creature::CallAssistance()
 {
-    if( !m_AlreadyCallAssistance && getVictim() && !IsPet() && !isCharmed())
+    // FIXME: should player pets call for assistance?
+    if (!m_AlreadyCallAssistance && getVictim() && !isCharmed())
     {
         SetNoCallAssistance(true);
 
