@@ -1969,6 +1969,17 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
 
         switch(GetId())
         {
+            case 126:                                       // Eye of Kilrogg (Summon)
+            {
+                if (Unit* caster = GetCaster())
+                {
+                    if (caster->GetTypeId() != TYPEID_PLAYER)
+                        return;
+
+                    caster->RemoveAurasDueToSpell(530);
+                }
+                return;
+            }
             case 10255:                                     // Stoned
             {
                 if (Unit* caster = GetCaster())

@@ -3223,9 +3223,13 @@ void Spell::EffectSummonType(SpellEffectIndex eff_idx)
         }
         case SUMMON_PROP_GROUP_CONTROLLABLE:
         {
-            // no type here
-            // maybe wrong - but thats the handler currently used for those
-            DoSummonGuardian(eff_idx, summon_prop->FactionId);
+            // Eye of Kilrogg
+            if (prop_id == 65)
+                DoSummonPossessed(eff_idx);
+            else
+                // no type here
+                // maybe wrong - but thats the handler currently used for those
+                DoSummonGuardian(eff_idx, summon_prop->FactionId);
             break;
         }
         default:
@@ -3567,6 +3571,44 @@ void Spell::EffectAddFarsight(SpellEffectIndex eff_idx)
     m_caster->GetMap()->Add(dynObj);
 
     ((Player*)m_caster)->GetCamera().SetView(dynObj);
+}
+
+void Spell::DoSummonPossessed(SpellEffectIndex eff_idx)
+{
+    if (!m_caster || m_caster->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    uint32 creature_entry = m_spellInfo->EffectMiscValue[eff_idx];
+    if(!creature_entry)
+        return;
+
+    int32 duration = GetSpellDuration(m_spellInfo);
+
+    float px, py, pz;
+    // If dest location if present
+    if (m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION)
+    {
+        // Summon 1 unit in dest location
+        px = m_targets.m_destX;
+        py = m_targets.m_destY;
+        pz = m_targets.m_destZ;
+    }
+    // Summon if dest location not present near caster
+    else
+        m_caster->GetClosePoint(px, py, pz, 1.0f);
+
+    TempSummonType summonType = (duration == 0) ? TEMPSUMMON_DEAD_DESPAWN : TEMPSUMMON_TIMED_OR_DEAD_DESPAWN;
+    Creature* summon = m_caster->SummonCreature(creature_entry, px, py, pz, m_caster->GetOrientation(), summonType, duration);
+
+    if (summon)
+    {
+        // ToDo: Should we set the level equal with the caster level?
+        // ToDo: Should we lock the AI for scripted types?
+        m_caster->CastSpell(summon, 530, true);
+        summon->SetWalk(false);
+    }
+    else
+        sLog.outError("New possessed creature (entry %d) NOT summoned. Owner is %d ", summon->GetEntry(), m_caster->GetGUIDLow());
 }
 
 void Spell::DoSummonWild(SpellEffectIndex eff_idx, uint32 forceFaction)

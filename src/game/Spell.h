@@ -349,6 +349,7 @@ class Spell
 
         void DoCreateItem(SpellEffectIndex eff_idx, uint32 itemtype);
         void DoSummon(SpellEffectIndex eff_idx);
+        void DoSummonPossessed(SpellEffectIndex eff_idx);
         void DoSummonWild(SpellEffectIndex eff_idx, uint32 forceFaction = 0);
         void DoSummonGuardian(SpellEffectIndex eff_idx, uint32 forceFaction = 0);
         void DoSummonTotem(SpellEffectIndex eff_idx, uint8 slot_dbc = 0);
