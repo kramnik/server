@@ -1890,6 +1890,8 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                 for(std::list<GameObject*>::iterator iter = tempTargetGOList.begin(); iter != tempTargetGOList.end(); ++iter)
                     AddGOTarget(*iter, effIndex);
             }
+            else
+                targetUnitMap.push_back(m_caster);
 
             break;
         }
