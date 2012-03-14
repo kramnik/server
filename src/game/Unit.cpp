@@ -41,6 +41,7 @@
 #include "Totem.h"
 #include "BattleGround.h"
 #include "InstanceData.h"
+#include "OutdoorPvP/OutdoorPvP.h"
 #include "MapPersistentStateMgr.h"
 #include "GridNotifiersImpl.h"
 #include "CellImpl.h"
@@ -780,6 +781,10 @@ uint32 Unit::DealDamage(Unit *pVictim, uint32 damage, CleanDamage const* cleanDa
         if (GetTypeId() == TYPEID_UNIT && ((Creature*)this)->AI())
             ((Creature*)this)->AI()->KilledUnit(pVictim);
 
+        // Call World pvp scripts for player kill
+        if (pVictim->GetTypeId() == TYPEID_PLAYER && GetTypeId() == TYPEID_PLAYER)
+            sOutdoorPvPMgr.HandlePlayerKill((Player*)this, pVictim);
+
         // Call AI OwnerKilledUnit (for any current summoned minipet/guardian/protector)
         PetOwnerKilledUnit(pVictim);
 
@@ -832,6 +837,9 @@ uint32 Unit::DealDamage(Unit *pVictim, uint32 damage, CleanDamage const* cleanDa
             if (InstanceData* mapInstance = cVictim->GetInstanceData())
                 mapInstance->OnCreatureDeath(cVictim);
 
+            if (m_zoneScript = sOutdoorPvPMgr.GetZoneScript(GetZoneId()))
+                m_zoneScript->OnCreatureDeath(((Creature*)cVictim));
+
             if (cVictim->IsLinkingEventTrigger())
                 cVictim->GetMap()->GetCreatureLinkingHolder()->DoCreatureLinkingEvent(LINKING_EVENT_DIE, cVictim);
 
@@ -874,6 +882,13 @@ uint32 Unit::DealDamage(Unit *pVictim, uint32 damage, CleanDamage const* cleanDa
             he->CombatStopWithPets(true);
 
             he->DuelComplete(DUEL_INTERUPTED);
+        }
+
+        // handle player kill in outdoor pvp
+        if (player_tap && this != pVictim)
+        {
+            if (OutdoorPvP* pWorldBg = player_tap->GetOutdoorPvP())
+                pWorldBg->HandlePlayerKillInsideArea(player_tap, pVictim);
         }
 
         // battleground things (do this at the end, so the death state flag will be properly set to handle in the bg->handlekill)

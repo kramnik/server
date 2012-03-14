@@ -65,6 +65,7 @@ class Map;
 class UpdateMask;
 class InstanceData;
 class TerrainInfo;
+class ZoneScript;
 
 typedef UNORDERED_MAP<Player*, UpdateData> UpdateDataMapType;
 
@@ -540,7 +541,7 @@ class MANGOS_DLL_SPEC WorldObject : public Object
         void PlayDirectSound(uint32 sound_id, Player* target = NULL);
 
         void SendObjectDeSpawnAnim(ObjectGuid guid);
-        void SendGameObjectCustomAnim(ObjectGuid guid);
+        void SendGameObjectCustomAnim(ObjectGuid guid, uint32 animId = 0);
 
         virtual bool IsHostileTo(Unit const* unit) const =0;
         virtual bool IsFriendlyTo(Unit const* unit) const =0;
@@ -565,6 +566,9 @@ class MANGOS_DLL_SPEC WorldObject : public Object
 
         //obtain terrain data for map where this object belong...
         TerrainInfo const* GetTerrain() const;
+
+        void SetZoneScript();
+        ZoneScript * GetZoneScript() const { return m_zoneScript; }
 
         void AddToClientUpdateList();
         void RemoveFromClientUpdateList();
@@ -593,6 +597,7 @@ class MANGOS_DLL_SPEC WorldObject : public Object
 
         virtual void StopGroupLoot() {}
 
+        ZoneScript *m_zoneScript;
         std::string m_name;
 
     private:

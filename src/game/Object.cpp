@@ -40,6 +40,7 @@
 #include "GridNotifiersImpl.h"
 #include "ObjectPosSelector.h"
 #include "TemporarySummon.h"
+#include "OutdoorPvP/OutdoorPvPMgr.h"
 #include "movement/packet_builder.h"
 
 Object::Object( )
@@ -1454,11 +1455,11 @@ void WorldObject::SendObjectDeSpawnAnim(ObjectGuid guid)
     SendMessageToSet(&data, true);
 }
 
-void WorldObject::SendGameObjectCustomAnim(ObjectGuid guid)
+void WorldObject::SendGameObjectCustomAnim(ObjectGuid guid, uint32 animId /*= 0*/)
 {
     WorldPacket data(SMSG_GAMEOBJECT_CUSTOM_ANIM, 8+4);
     data << ObjectGuid(guid);
-    data << uint32(0);                                      // not known what this is
+    data << uint32(animId);
     SendMessageToSet(&data, true);
 }
 
@@ -1480,6 +1481,15 @@ TerrainInfo const* WorldObject::GetTerrain() const
 void WorldObject::AddObjectToRemoveList()
 {
     GetMap()->AddObjectToRemoveList(this);
+}
+
+void WorldObject::SetZoneScript()
+{
+    if (Map* map = GetMap())
+    {
+        if (!map->IsBattleGroundOrArena() && !map->IsDungeon())
+            m_zoneScript = sOutdoorPvPMgr.GetZoneScript(GetZoneId());
+    }
 }
 
 Creature* WorldObject::SummonCreature(uint32 id, float x, float y, float z, float ang,TempSummonType spwtype,uint32 despwtime, bool asActiveObject)
