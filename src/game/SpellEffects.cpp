@@ -6410,14 +6410,47 @@ void Spell::EffectStealBeneficialBuff(SpellEffectIndex eff_idx)
         typedef std::list < std::pair<uint32, ObjectGuid> > SuccessList;
         SuccessList success_list;
         int32 list_size = steal_list.size();
+        // Only steal a limited number of effects
+        int32 maxDispells = m_spellInfo->CalculateSimpleValue(eff_idx);
         // Dispell N = damage buffs (or while exist buffs for dispel)
         for (int32 count=0; count < damage && list_size > 0; ++count)
         {
+            // If all charges are dispelled then skip this
+            if (!maxDispells)
+                continue;
+
             // Random select buff for dispel
             SpellAuraHolder *holder = steal_list[urand(0, list_size-1)];
-            // Not use chance for steal
-            // TODO possible need do it
-            success_list.push_back(SuccessList::value_type(holder->GetId(),holder->GetCasterGuid()));
+
+            int32 miss_chance = 0;
+            // Apply dispel mod from aura caster
+            Unit* caster = holder->GetCaster();
+            Unit* target = holder->GetTarget();
+
+            if(!caster || !target)
+                continue;
+
+            // Calculate resist chance
+            if (Player* modOwner = caster->GetSpellModOwner())
+            {
+                modOwner->ApplySpellMod(holder->GetSpellProto()->Id, SPELLMOD_RESIST_DISPEL_CHANCE, miss_chance, this);
+                miss_chance += modOwner->GetTotalAuraModifier(SPELL_AURA_MOD_DISPEL_RESIST);
+            }
+
+            if (caster != target)
+            {
+                if (Player* modOwner = target->GetSpellModOwner())
+                {
+                    modOwner->ApplySpellMod(holder->GetSpellProto()->Id, SPELLMOD_RESIST_DISPEL_CHANCE, miss_chance, this);
+                    miss_chance += modOwner->GetTotalAuraModifier(SPELL_AURA_MOD_DISPEL_RESIST);
+                }
+            }
+
+            // Try dispel
+            if (!roll_chance_i(miss_chance))
+                success_list.push_back(SuccessList::value_type(holder->GetId(),holder->GetCasterGuid()));
+            else
+                m_caster->SendSpellMiss(unitTarget, holder->GetSpellProto()->Id, SPELL_MISS_RESIST);
 
             // Remove buff from list for prevent doubles
             for (StealList::iterator j = steal_list.begin(); j != steal_list.end(); )
@@ -6427,6 +6460,11 @@ void Spell::EffectStealBeneficialBuff(SpellEffectIndex eff_idx)
                 {
                     j = steal_list.erase(j);
                     --list_size;
+                    --maxDispells;
+
+                    // If all the auras were dispelled then exit
+                    if (!maxDispells)
+                        break;
                 }
                 else
                     ++j;
