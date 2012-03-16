@@ -6411,14 +6411,11 @@ void Spell::EffectStealBeneficialBuff(SpellEffectIndex eff_idx)
         SuccessList success_list;
         int32 list_size = steal_list.size();
         // Only steal a limited number of effects
-        int32 maxDispells = m_spellInfo->CalculateSimpleValue(eff_idx);
+        damage = m_spellInfo->CalculateSimpleValue(eff_idx);
+
         // Dispell N = damage buffs (or while exist buffs for dispel)
         for (int32 count=0; count < damage && list_size > 0; ++count)
         {
-            // If all charges are dispelled then skip this
-            if (!maxDispells)
-                continue;
-
             // Random select buff for dispel
             SpellAuraHolder *holder = steal_list[urand(0, list_size-1)];
 
@@ -6460,11 +6457,6 @@ void Spell::EffectStealBeneficialBuff(SpellEffectIndex eff_idx)
                 {
                     j = steal_list.erase(j);
                     --list_size;
-                    --maxDispells;
-
-                    // If all the auras were dispelled then exit
-                    if (!maxDispells)
-                        break;
                 }
                 else
                     ++j;
