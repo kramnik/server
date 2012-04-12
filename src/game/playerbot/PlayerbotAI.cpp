@@ -6282,7 +6282,7 @@ void PlayerbotAI::_HandleCommandMail(std::string &text, Player &fromPlayer)
 
         TellMaster("Inbox:\n");
 
-	for(PlayerMails::reverse_iterator itr = m_bot->GetMailRBegin(); itr != m_bot->GetMailREnd(); ++itr)
+        for(PlayerMails::reverse_iterator itr = m_bot->GetMailRBegin(); itr != m_bot->GetMailREnd(); ++itr)
         {
             std::ostringstream msg;
             ++mail_count;

@@ -2800,8 +2800,7 @@ void Spell::DoCreateItem(SpellEffectIndex eff_idx, uint32 itemtype)
             pItem->SetGuidValue(ITEM_FIELD_CREATOR, player->GetObjectGuid());
 
         // send info to the client
-        if(pItem)
-            player->SendNewItem(pItem, num_to_add, true, bgType == 0);
+        player->SendNewItem(pItem, num_to_add, true, bgType == 0);
 
         // we succeeded in creating at least one item, so a levelup is possible
         if(bgType == 0)
@@ -4803,11 +4802,11 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     uint32 spellid;
                     switch(m_spellInfo->Id)
                     {
-                        case 25140: spellid =  32571; break;
+                        case 25140: spellid =  32568; break;
                         case 25143: spellid =  32572; break;
                         case 25650: spellid =  30140; break;
                         case 25652: spellid =  30141; break;
-                        case 29128: spellid =  32568; break;
+                        case 29128: spellid =  32571; break;
                         case 29129: spellid =  32569; break;
                         case 35376: spellid =  25649; break;
                         case 35727: spellid =  35730; break;
@@ -5879,7 +5878,7 @@ void Spell::EffectCharge(SpellEffectIndex /*eff_idx*/)
         ((Creature *)unitTarget)->StopMoving();
 
     // Only send MOVEMENTFLAG_WALK_MODE, client has strange issues with other move flags
-    m_caster->MonsterMoveWithSpeed(x, y, z, 24.f);
+    m_caster->MonsterMoveWithSpeed(x, y, z, 24.f, true, true);
 
     // not all charge effects used in negative spells
     if (unitTarget != m_caster && !IsPositiveSpell(m_spellInfo->Id))
@@ -5904,7 +5903,7 @@ void Spell::EffectCharge2(SpellEffectIndex /*eff_idx*/)
         return;
 
     // Only send MOVEMENTFLAG_WALK_MODE, client has strange issues with other move flags
-    m_caster->MonsterMoveWithSpeed(x, y, z, 24.f);
+    m_caster->MonsterMoveWithSpeed(x, y, z, 24.f, true, true);
 
     // not all charge effects used in negative spells
     if (unitTarget && unitTarget != m_caster && !IsPositiveSpell(m_spellInfo->Id))
