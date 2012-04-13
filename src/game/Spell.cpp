@@ -45,8 +45,6 @@
 #include "Util.h"
 #include "Chat.h"
 
-#define SPELL_CHANNEL_UPDATE_INTERVAL (1 * IN_MILLISECONDS)
-
 extern pEffect SpellEffects[TOTAL_SPELL_EFFECTS];
 
 bool IsQuestTameSpell(uint32 spellId)
@@ -1475,10 +1473,12 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                     unMaxTargets = 2;
                     break;
                 case 31298:                                 // Sleep
+                case 39992:                                 // Needle Spine Targeting (BT, Warlord Najentus)
                     unMaxTargets = 3;
                     break;
                 case 30843:                                 // Enfeeble TODO: exclude top threat target from target selection
                 case 42005:                                 // Bloodboil TODO: need to be 5 targets(players) furthest away from caster
+                case 45641:                                 // Fire Bloom (SWP, Kil'jaeden)
                     unMaxTargets = 5;
                     break;
                 case 28796:                                 // Poison Bolt Volley
@@ -1486,6 +1486,9 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                     break;
                 case 25991:                                 // Poison Bolt Volley (Pincess Huhuran)
                     unMaxTargets = 15;
+                    break;
+                case 46771:                                 // Flame Sear (SWP, Grand Warlock Alythess)
+                    unMaxTargets = urand(3, 5);
                     break;
             }
             break;

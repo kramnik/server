@@ -5174,6 +5174,10 @@ void Unit::AttackedBy(Unit* attacker)
     if (GetTypeId() == TYPEID_UNIT && ((Creature*)this)->AI())
         ((Creature*)this)->AI()->AttackedBy(attacker);
 
+    // do not pet reaction for self inflicted damage (like environmental)
+    if (attacker == this)
+        return;
+
     // trigger pet AI reaction
     if (Pet* pet = GetPet())
         pet->AttackedBy(attacker);
@@ -5530,19 +5534,19 @@ void Unit::UnsummonAllTotems()
             totem->UnSummon();
 }
 
-int32 Unit::DealHeal(Unit *pVictim, uint32 addhealth, SpellEntry const *spellProto, bool critical)
+int32 Unit::DealHeal(Unit* pVictim, uint32 addhealth, SpellEntry const* spellProto, bool critical)
 {
     int32 gain = pVictim->ModifyHealth(int32(addhealth));
 
     Unit* unit = this;
 
-    if( GetTypeId()==TYPEID_UNIT && ((Creature*)this)->IsTotem() && ((Totem*)this)->GetTotemType()!=TOTEM_STATUE)
+    if (GetTypeId() == TYPEID_UNIT && ((Creature*)this)->IsTotem() && ((Totem*)this)->GetTotemType() != TOTEM_STATUE)
         unit = GetOwner();
 
-    if (unit->GetTypeId()==TYPEID_PLAYER)
-    {
-        unit->SendHealSpellLog(pVictim, spellProto->Id, addhealth, critical);
+    unit->SendHealSpellLog(pVictim, spellProto->Id, addhealth, critical);
 
+    if (unit->GetTypeId() == TYPEID_PLAYER)
+    {
         if (BattleGround *bg = ((Player*)unit)->GetBattleGround())
             bg->UpdatePlayerScore((Player*)unit, SCORE_HEALING_DONE, gain);
     }
