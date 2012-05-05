@@ -58,6 +58,8 @@ GameObject::GameObject() : WorldObject(),
     m_spellId = 0;
     m_cooldownTime = 0;
 
+    m_captureTimer = 0;
+
     m_groupLootTimer = 0;
     m_groupLootId = 0;
     m_lootGroupRecipientId = 0;
@@ -157,7 +159,7 @@ bool GameObject::Create(uint32 guidlow, uint32 name_id, Map *map, float x, float
 
     SetGoAnimProgress(animprogress);
 
-    // set saved capture point info if the grid was unloaded (for non visual capture points)
+    // set saved capture point info and activate it (exclude visual capture points used in EoTS)
     if (goinfo->type == GAMEOBJECT_TYPE_CAPTURE_POINT && goinfo->capturePoint.radius)
         SetCapturePointSlider(sOutdoorPvPMgr.GetCapturePointSliderValue(goinfo->id));
 
@@ -175,7 +177,7 @@ bool GameObject::Create(uint32 guidlow, uint32 name_id, Map *map, float x, float
     return true;
 }
 
-void GameObject::Update(uint32 update_diff, uint32 /*p_time*/)
+void GameObject::Update(uint32 update_diff, uint32 p_time)
 {
     if (GetObjectGuid().IsMOTransport())
     {
@@ -386,8 +388,12 @@ void GameObject::Update(uint32 update_diff, uint32 /*p_time*/)
                     }
                     break;
                 case GAMEOBJECT_TYPE_CAPTURE_POINT:
-                    if (m_cooldownTime < time(NULL))
+                    m_captureTimer += p_time;
+                    if (m_captureTimer >= 5000)
+                    {
                         TickCapturePoint();
+                        m_captureTimer -= 5000;
+                    }
                     break;
                 default:
                     break;
@@ -1930,7 +1936,6 @@ void GameObject::SetCapturePointSlider(int8 value)
             break;
         default:
             m_captureSlider = value;
-            m_cooldownTime = time(NULL) + 5; // initial tick delay
             SetLootState(GO_ACTIVATED);
             break;
     }
@@ -1950,8 +1955,7 @@ void GameObject::SetCapturePointSlider(int8 value)
 
 void GameObject::TickCapturePoint()
 {
-    // TODO: On retail: Ticks every 5.2 seconds. slider increase when new player enters on tick
-    m_cooldownTime = time(NULL) + 5;
+    // TODO: On retail: Ticks every 5.2 seconds. slider value increase when new player enters on tick
 
     GameObjectInfo const* info = GetGOInfo();
     float radius = info->capturePoint.radius;
@@ -1984,6 +1988,7 @@ void GameObject::TickCapturePoint()
             (*itr)->SendUpdateWorldState(info->capturePoint.worldState3, neutralPercent);
             (*itr)->SendUpdateWorldState(info->capturePoint.worldState2, oldValue);
             (*itr)->SendUpdateWorldState(info->capturePoint.worldState1, WORLD_STATE_ADD);
+            (*itr)->SendUpdateWorldState(info->capturePoint.worldState2, oldValue); // also redundantly sent on retail to prevent displaying the initial capture direction on client capture slider incorrectly
         }
     }
 
@@ -2008,23 +2013,27 @@ void GameObject::TickCapturePoint()
     else if (rangePlayers < -maxSuperiority)
         rangePlayers = -maxSuperiority;
 
-    // time to capture from 0% to 100% is maxTime for minSuperiority amount of players and minTime for maxSuperiority amount of players
-    float diffTicks = 500.0f /
-        (float)((maxSuperiority - abs(rangePlayers)) * (info->capturePoint.maxTime - info->capturePoint.minTime) /
-        (float)(maxSuperiority - info->capturePoint.minSuperiority) + info->capturePoint.minTime);
+    // time to capture from 0% to 100% is maxTime for minSuperiority amount of players and minTime for maxSuperiority amount of players (linear function: y = dy/dx*x+d)
+    float deltaSlider = info->capturePoint.minTime;
+
+    if (int deltaSuperiority = maxSuperiority - info->capturePoint.minSuperiority)
+        deltaSlider += (float)(maxSuperiority - abs(rangePlayers)) / deltaSuperiority * (info->capturePoint.maxTime - info->capturePoint.minTime);
+
+    // calculate changed slider value for a duration of 5 seconds (5 * 100%)
+    deltaSlider = 500.0f / deltaSlider;
 
     Team progressFaction;
     if (rangePlayers > 0)
     {
         progressFaction = ALLIANCE;
-        m_captureSlider += diffTicks;
+        m_captureSlider += deltaSlider;
         if (m_captureSlider > CAPTURE_SLIDER_ALLIANCE)
             m_captureSlider = CAPTURE_SLIDER_ALLIANCE;
     }
     else
     {
         progressFaction = HORDE;
-        m_captureSlider -= diffTicks;
+        m_captureSlider -= deltaSlider;
         if (m_captureSlider < CAPTURE_SLIDER_HORDE)
             m_captureSlider = CAPTURE_SLIDER_HORDE;
     }
