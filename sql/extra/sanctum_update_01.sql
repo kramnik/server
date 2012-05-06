@@ -91,7 +91,7 @@ INSERT INTO `quest_end_scripts` VALUES
 (411, 23, 1, 2, 0, 5666, 10, 0, '0', '0', '0', '0', 0, 0, 0, 0, ''),
 (411, 30, 0, 0, 0, 1498, 10, 0, '2000000211', '0', '0', '0', 0, 0, 0, 0, 'Bethor Say');
 
--- ### Quest 11062 ###
+-- ### Quest 10162/10163 ###
 update item_template set area=0 where entry=28132;
 
 -- ### Quest 8346 ###
@@ -119,6 +119,9 @@ INSERT INTO `gameobject` (`id`,`map`,`spawnMask`,`position_x`,`position_y`,`posi
 (188126,530,1,-1745.81,5533.84,-7.92614,-0.977383,0,0,-0.469471,0.882948,180,255,1),
 (188127,530,1,-1987.36,5320.47,-6.77673,-1.23918,0,0,-0.580703,0.814116,180,255,1),
 (188127,530,1,-2025.81,5396.9,-6.56243,2.11185,0,0,0.870356,0.492424,180,255,1);
+
+-- Fix battlemasters
+delete from game_event_creature where guid in (select guid from creature a join creature_template b on a.id = b.entry where b.subname like '%battlemaster')
 
 
 
