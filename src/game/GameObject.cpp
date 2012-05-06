@@ -415,6 +415,10 @@ void GameObject::Update(uint32 update_diff, uint32 p_time)
                         }
 
                         ClearAllUsesData();
+
+                        // Don't despawn objects with nodespawn flag
+                        if (HasFlag(GAMEOBJECT_FLAGS, GO_FLAG_NODESPAWN))
+                            return;
                     }
 
                     SetGoState(GO_STATE_READY);
@@ -1628,6 +1632,11 @@ void GameObject::Use(Unit* user)
     SpellEntry const *spellInfo = sSpellStore.LookupEntry(spellId);
     if (!spellInfo)
     {
+        // Handle OutdoorPvP use cases - some spells are missing from DBC
+        // Note: this may be also handled by DB spell scripts in the future
+        if (user->GetTypeId() == TYPEID_PLAYER)
+            sOutdoorPvPMgr.HandleObjectUse((Player*)user, this);
+
         sLog.outError("WORLD: unknown spell id %u at use action for gameobject (Entry: %u GoType: %u )", spellId, GetEntry(), GetGoType());
         return;
     }
