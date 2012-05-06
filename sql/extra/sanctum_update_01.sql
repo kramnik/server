@@ -81,13 +81,6 @@ insert into spell_script_target values
 -- ### Pet trainer fix
 UPDATE `creature_template` SET `trainer_class` = 3 WHERE `entry` = 16675;
 
--- ### Quest 8346 ###
--- Creature id: 15274
-UPDATE creature_template SET AIName='EventAI' WHERE entry=15274;
-DELETE FROM creature_ai_scripts WHERE creature_id=15274;
-INSERT INTO creature_ai_scripts VALUES 
-('1527401','15274','8','0','100','0','28734','0','0','0','33','15468','6','0','0','0','0','0','0','0','0','0','Mana Wyrm - Killed Credit for Sunstrider Mana Tap Counter');
-
 -- ### Quest 411 ###
 -- fix typo
 DELETE FROM `quest_end_scripts` WHERE `id`=411;
@@ -121,7 +114,7 @@ INSERT INTO creature_ai_scripts VALUES
 
 -- Shattrath guild banks
 delete from gameobject where id in (188126,188127);
-insert into INSERT INTO `gameobject` (`id`,`map`,`spawnMask`,`position_x`,`position_y`,`position_z`,`orientation`,`rotation0`,`rotation1`,`rotation2`,`rotation3`,`spawntimesecs`,`animprogress`,`state`) VALUES81820	188126	530	1	1	-1709,69	5461,01	-7,92767	1,85005	0	0	0,798635	0,601815	180	255	1
+INSERT INTO `gameobject` (`id`,`map`,`spawnMask`,`position_x`,`position_y`,`position_z`,`orientation`,`rotation0`,`rotation1`,`rotation2`,`rotation3`,`spawntimesecs`,`animprogress`,`state`) VALUES
 (188126,530,1,-1709.69,5461.01,-7.92767,1.85005,0,0,0.798635,0.601815,180,255,1),
 (188126,530,1,-1745.81,5533.84,-7.92614,-0.977383,0,0,-0.469471,0.882948,180,255,1),
 (188127,530,1,-1987.36,5320.47,-6.77673,-1.23918,0,0,-0.580703,0.814116,180,255,1),
