@@ -1410,6 +1410,21 @@ void WorldSession::HandleSetDungeonDifficultyOpcode( WorldPacket & recv_data )
     {
         if (pGroup->IsLeader(_player->GetObjectGuid()))
         {
+            for (GroupReference* itr = pGroup->GetFirstMember(); itr != NULL; itr = itr->next())
+            {
+                Player* groupGuy = itr->getSource();
+                if (!groupGuy)
+                    continue;
+
+                if (!groupGuy->IsInMap(groupGuy))
+                    return;
+
+                if (groupGuy->GetMap()->IsNonRaidDungeon())
+                {
+                    sLog.outError("WorldSession::HandleSetDungeonDifficultyOpcode: player %d tried to reset the instance while group member (Name: %s, GUID: %u) is inside!", _player->GetGUIDLow(), groupGuy->GetName(), groupGuy->GetGUIDLow());
+                    return;
+                }
+            }
             // the difficulty is set even if the instances can't be reset
             //_player->SendDungeonDifficulty(true);
             pGroup->ResetInstances(INSTANCE_RESET_CHANGE_DIFFICULTY, _player);

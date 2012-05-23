@@ -124,7 +124,7 @@ INSERT INTO `gameobject` (`id`,`map`,`spawnMask`,`position_x`,`position_y`,`posi
 delete from game_event_creature where guid in (select guid from creature a join creature_template b on a.id = b.entry where b.subname like '%battlemaster');
 
 -- Kaliri egg targets (the rest is in core)
-delete from spell_script_target where entry =39844);
+delete from spell_script_target where entry =39844;
 insert into spell_script_target values
 (39844, 0, 185549);
 
